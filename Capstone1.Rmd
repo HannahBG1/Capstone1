@@ -1,0 +1,306 @@
+---
+title: "Most streamed songs on Spotify in 2023"
+output: html_notebook
+---
+
+
+```{r}
+setwd("C:\\Users\\cjget\\Downloads")
+
+data <- read.csv("C:\\Users\\cjget\\Downloads\\spotify-2023.csv")
+
+View(spotify.2023)
+
+```
+
+
+
+1.) What are the top 5 most streamed songs streamed?
+```{r}
+
+# Sort the dataset by streams in descending order
+sorted_data <- spotify.2023[order(-spotify.2023$streams), ]
+
+# Select the top 5 rows
+top_5_songs <- head(sorted_data, 5)
+
+# Print the top 5 most streamed songs
+print(top_5_songs)
+
+```
+
+
+2.) What was the valence and danceability of the #1 most streamed song?
+```{r}
+valence <- top_song$valence_
+danceability <- top_song$danceability_
+
+valence <- ifelse(is.na(valence), NA, as.numeric(valence))
+danceability <- ifelse(is.na(danceability), NA, as.numeric(danceability))
+
+# Print the valence and danceability values
+cat("Valence of the top streamed song:", valence, "\n")
+cat("Danceability of the top streamed song:", danceability, "\n")
+
+# Create a bar plot for valence and danceability
+barplot(c(valence, danceability), names.arg = c("Valence", "Danceability"), 
+        col = c("blue", "green"), main = "Valence and Danceability of the Top Streamed Song",
+        ylab = "Value", ylim = c(0, 100))
+
+
+```
+
+3.)How did Valence, energy and danceability affect the top 5 songs on the charts?
+```{r}
+
+spotify_clean <- spotify.2023[complete.cases(spotify.2023[, c("valence_.", "danceability_.", "energy_.", "streams")]), ]
+
+# Get the top 5 songs based on streaming numbers
+top_5_songs <- head(spotify_clean[order(-spotify_clean$streams), ], 5)
+
+# Extract valence, danceability, and energy for the top 5 songs
+valence <- top_5_songs$valence_.
+danceability <- top_5_songs$danceability_.
+energy <- top_5_songs$energy_.
+
+# Calculate correlations between attributes and streaming numbers
+cor_valence <- cor(top_5_songs$streams, valence)
+cor_danceability <- cor(top_5_songs$streams, danceability)
+cor_energy <- cor(top_5_songs$streams, energy)
+
+# Print correlation coefficients
+cat("Correlation between streaming numbers and valence:", cor_valence, "\n")
+cat("Correlation between streaming numbers and danceability:", cor_danceability, "\n")
+cat("Correlation between streaming numbers and energy:", cor_energy, "\n")
+
+# Round correlation coefficients to 2 decimal places
+cor_valence <- round(cor_valence, 2)
+cor_danceability <- round(cor_danceability, 2)
+cor_energy <- round(cor_energy, 2)
+
+cat("Correlation between streaming numbers and valence:", cor_valence)
+if (abs(cor_valence) >= 0.7) {
+  cat(" (Strong correlation)")
+} else if (abs(cor_valence) >= 0.3) {
+  cat(" (Moderate correlation)")
+} else {
+  cat(" (Weak correlation)")
+}
+cat("\n")
+
+cat("Correlation between streaming numbers and danceability:", cor_danceability)
+if (abs(cor_danceability) >= 0.7) {
+  cat(" (Strong correlation)")
+} else if (abs(cor_danceability) >= 0.3) {
+  cat(" (Moderate correlation)")
+} else {
+  cat(" (Weak correlation)")
+}
+cat("\n")
+
+cat("Correlation between streaming numbers and energy:", cor_energy)
+if (abs(cor_energy) >= 0.7) {
+  cat(" (Strong correlation)")
+} else if (abs(cor_energy) >= 0.3) {
+  cat(" (Moderate correlation)")
+} else {
+  cat(" (Weak correlation)")
+}
+cat("\n")
+
+
+```
+
+
+
+4.) What artist had the most streams?
+```{r}
+spotify_clean <- spotify.2023[!is.na(spotify.2023$streams), ]
+
+# Aggregate streams by artist
+artist_streams <- aggregate(streams ~ artist.s._name, data = spotify_clean, sum)
+
+# Find the artist with the most streams
+top_artist <- artist_streams[which.max(artist_streams$streams), ]
+
+# Print the artist with the most streams
+cat("Artist with the most streams:", top_artist$artist.s._name, "\n")
+
+```
+
+
+
+5.) What were the top 3 songs that have the most energy?
+```{r}
+spotify_clean <- spotify.2023[!is.na(spotify.2023$energy_.), ]
+
+# Sort the data by energy in descending order
+sorted_data <- spotify_clean[order(-spotify_clean$energy_.), ]
+
+# Select the top three rows
+top_three_songs <- head(sorted_data, 3)
+
+# Print the top three songs with the most energy
+print(top_three_songs[, c("track_name", "energy_.")])
+
+```
+
+
+
+6.) How much danceability did the most streamed track in 2023 have?
+```{r}
+
+# Identify the most streamed track
+most_streamed_track <- spotify.2023[which.max(spotify.2023$streams), ]
+
+# Get the danceability of the most streamed track
+most_streamed_danceability <- most_streamed_track$danceability
+
+# Print the danceability of the most streamed track
+cat("The danceability of the most streamed track is:", most_streamed_danceability, "\n")
+
+```
+
+
+
+7.) How well did the most streamed track do on spotify charts compared to other charts?
+```{r}
+
+# Remove rows with NA in the streams column
+cleaned_spotify_2023 <- spotify.2023 %>%
+  filter(!is.na(streams))
+
+# Identify the most streamed track
+most_streamed_track <- cleaned_spotify_2023[which.max(cleaned_spotify_2023$streams), ]
+
+# Extract relevant information about the most streamed track
+most_streamed_song_title <- most_streamed_track$song_title
+most_streamed_track_charts <- most_streamed_track[, c("in_spotify_charts", "in_apple_charts", "in_deezer_charts", "in_shazam_charts")]
+
+# Print the comparison of chart performance
+cat("Chart performance for the most streamed track (", most_streamed_song_title, "):\n")
+print(most_streamed_track_charts)
+
+# Create a data frame for visualization
+chart_data <- data.frame(
+  Platform = c("Spotify", "Apple Music", "Deezer", "Shazam"),
+  InCharts = c(
+    most_streamed_track$in_spotify_charts,
+    most_streamed_track$in_apple_charts,
+    most_streamed_track$in_deezer_charts,
+    most_streamed_track$in_shazam_charts
+  )
+)
+
+# Create a bar chart
+ggplot(chart_data, aes(x = Platform, y = InCharts, fill = Platform)) +
+  geom_bar(stat = "identity") +
+  labs(title = paste("Chart Performance of the Most Streamed Track:", most_streamed_song_title),
+       y = "Presence in Charts",
+       x = "Platform") +
+  theme_minimal()
+
+```
+
+
+
+8.) How does the valence (positveness) of a song relate to it's streaming numbers?
+```{r}
+ # Scatter plot for steams vs. valence
+
+plot(spotify.2023$streams, spotify.2023$valence, main="Streams vs. Valence", xlab="Streams", ylab="Valence", col="skyblue")
+
+options(scipen = 8000000000)
+```
+
+
+
+
+9.) How do streaming numbers vary by the release year of the songs? Are older songs just as popular or do the newer releases dominate the charts?
+```{r}
+# Convert 'streams' column to numeric
+spotify.2023$streams <- as.numeric(as.character(spotify.2023$streams))
+
+# Convert 'release_year' column to numeric
+spotify.2023$release_year <- as.numeric(as.character(spotify.2023$release_year))
+
+# Aggregate streams by release year
+streams_by_year <- aggregate(streams ~ release_year, data = spotify.2023, sum)
+
+options(scipen = 900000000)
+
+# Plot streaming numbers by release year
+plot(streams_by_year$release_year, streams_by_year$streams, type = "b", 
+     main = "Streaming Numbers by Release Year", xlab = "Release Year", ylab = "Total Streams")
+
+correlation <- cor(streams_by_year$release_year, streams_by_year$streams)
+
+cat("Correlation coefficient between release year and total streams:", correlation, "\n")
+
+# Compare popularity of older vs. newer songs
+summary(streams_by_year$streams)
+
+
+```
+
+
+
+10.) Which song had the most liveness? Do songs with the most liveness get streamed more?
+```{r}
+# Find the row index of the song with the highest liveness
+index_max_liveness <- which.max(spotify.2023$liveness)
+
+# Get the name of the song with the highest liveness
+song_max_liveness <- spotify.2023$track_name[index_max_liveness]
+
+# Get the stream count of the song with the highest liveness
+stream_count_max_liveness <- spotify.2023$streams[index_max_liveness]
+
+# Print the information
+cat("Song with the highest liveness:", song_max_liveness, "\n")
+cat("Stream count of the song with the highest liveness:", stream_count_max_liveness, "\n")
+
+# Analyze the relationship between liveness and streams
+mean_stream_count_high_liveness <- mean(spotify.2023$streams[spotify.2023$liveness > 0.8], na.rm = TRUE)
+cat("Mean stream count of songs with high liveness (>0.8):", mean_stream_count_high_liveness, "\n")
+
+```
+
+
+
+11.) How did collaborations affect song popularity?
+```{r}
+
+spotify_clean <- spotify.2023[complete.cases(spotify.2023[, c("artist_count", "streams")]), ]
+
+summary_artist_count <- summary(spotify_clean$artist_count)
+summary_streams <- summary(spotify_clean$streams)
+
+# Print summary statistics
+cat("Summary statistics for artist_count:", summary_artist_count, "\n")
+cat("Summary statistics for streams:", summary_streams, "\n")
+
+plot(spotify_clean$artist_count, spotify_clean$streams, 
+     xlab = "Artist Count", ylab = "streams", 
+     main = "Artist Count vs. streams",
+     col = "blue", pch = 16, cex = 1.5, 
+     xlim = c(0, max(spotify_clean$artist_count) + 1),
+     ylim = c(0, max(spotify_clean$streams) + 1),
+     cex.axis = 1.2, cex.lab = 1.2)
+
+abline(lm(spotify_clean$streams ~ spotify_clean$artist_count), col = "red")
+
+
+# Calculate correlation coefficient
+correlation <- cor(spotify_clean$artist_count, spotify_clean$streams)
+cat("Correlation between artist_count and streams:", correlation, "\n")
+
+```
+
+
+12.)
+```{r}
+
+
+```
+
